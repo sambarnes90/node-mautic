@@ -1,0 +1,14 @@
+{
+  "name": "mautic-api-node",
+  "version": "0.0.2",
+  "description": "Use the Mautic API from Nodejs.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sam Barnes",
+  "license": "ISC",
+  "dependencies": {
+  	"request": "^2.0.0"
+  }
+}
