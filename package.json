@@ -1,8 +1,9 @@
 {
   "name": "mautic-api-node",
-  "version": "0.0.2",
+  "version": "0.0.5",
   "description": "Use the Mautic API from Nodejs.",
-  "main": "index.js",
+  "main": "mautic-api.js",
+  "homepage": "https://github.com/sambarnes90/node-mautic",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

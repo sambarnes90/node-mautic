@@ -1,4 +1,4 @@
-var mautic = require('./mautic-api.js');
+var mautic = require('mautic-api-node');
 var request = require('request');
 
 mautic.config.base_url = "https://example.mautic.com";
@@ -15,7 +15,8 @@ var logResult = function (asset) {
 
 var testFunction = function(config){
 	if (config.auth_object) {
-	 	mautic.contacts.getContact(config,820004,logResult);
+		var contactId = 111;
+	 	mautic.contacts.getContact(config,contactId,logResult);
 	}
 };
 
