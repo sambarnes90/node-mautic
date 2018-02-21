@@ -1,9 +1,130 @@
-// api.js
-// Used for making API calls
+'use strict'
 
 var exports = module.exports = {};
 var request = require('request');
 var fs = require('fs');
+var readline = require('readline');
+
+exports.config = {
+	base_url: "https://example.mautic.com",
+	redirect_uri:"https://example.mautic.com/redirecthere",
+	public_key: "EXAMPLE_PUBLIC_KEY",
+	secret_key: "EXAMPLE_SECRET_KEY",
+	state: "RANDOMSTATE",
+	code: "",
+	api_endpoint: "https://example.mautic.com/api"
+};
+
+exports.auth = {
+	checkAuth: function(callback) {
+	    var jsonAuthFile = fs.readFile("token.json", "utf8", function(err, data) {
+	        if (err) {
+	            exports.auth.generateAuthUrl(callback);
+	        } else {
+	            var auth = JSON.parse(data);
+	            exports.config.auth_object = auth;
+	            exports.auth.testCall(callback);
+	        }
+	    })
+	},
+	generateAuthUrl: function(callback) {
+	    var authUrl = exports.config.base_url + "/oauth/v2/authorize?client_id=" + exports.config.public_key + "&grant_type=authorization_code&redirect_uri=" + exports.config.redirect_uri + "&response_type=code&state=" + exports.config.state;
+	    console.log("You've not yet authorised this app - please access the link below to generate two tokens in the URL it redirects to, State - to ensure that the request hasn't been tampered with, and 'code', which you'll need to copy and paste into this window to continue.");
+	    console.log(authUrl);
+	    var cliinput = readline.createInterface({
+	        input: process.stdin,
+	        output: process.stdout
+	    });
+	    cliinput.question("Please paste the code into this prompt and press enter to continue", function(code) {
+	        console.log("Token Accepted");
+	        exports.config.code = code;
+	        exports.auth.getAccessToken(code,callback);
+	    })
+	},
+	getAccessToken: function(code,callback) {
+	    var postBody = {
+	        code: exports.config.code,
+	        client_id: exports.config.public_key,
+	        client_secret: exports.config.secret_key,
+	        grant_type: "authorization_code",
+	        redirect_uri: exports.config.redirect_uri,
+	    }
+	    var tokenUrl = encodeURI(exports.config.base_url + "/oauth/v2/token?client_id=" + exports.config.public_key + "&client_secret=" + exports.config.secret_key + "&grant_type=authorization_code&redirect_uri=" + exports.config.redirect_uri + "&code=" + exports.config.code);
+	    request.post({
+	        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+	        url: tokenUrl,
+	        form: postBody
+	    }, function(err, httpResponse, body) {
+	        if (err) {
+	            callback(err);
+	        } else {
+	            var resObject = JSON.parse(body);
+	            if (resObject.errors) {
+	                callback(resObject.errors);
+	            } else {
+	                var responseObject = JSON.parse(body);
+	                exports.config.auth_object = responseObject;
+	                var jsonObject = JSON.stringify(exports.config.auth_object);
+	                fs.writeFile('token.json', jsonObject, 'utf-8', function() {
+	                    exports.auth.checkAuth(callback);
+	                });
+	            }
+	        }
+	    })
+	},
+	refreshToken: function(callback) {
+	    var postBody = {
+	        refresh_token: exports.config.auth_object.refresh_token,
+	        client_id: exports.config.public_key,
+	        client_secret: exports.config.secret_key,
+	        grant_type: "refresh_token",
+	        redirect_uri: exports.config.redirect_uri,
+	    }
+	    var tokenUrl = encodeURI(exports.config.base_url + "/oauth/v2/token?refresh_token=" + exports.config.auth_object.refresh_token + "&client_id=" + exports.config.public_key + "&client_secret=" + exports.config.secret_key + "&grant_type=refresh_token&redirect_uri=" + exports.config.redirect_uri);
+	    request.post({
+	        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+	        url: tokenUrl,
+	        form: postBody
+	    }, function(err, httpResponse, body) {
+	        if (err) {
+	            callback(err);
+	        } else {
+	            var responseObject = JSON.parse(body);
+	            if (responseObject.errors) {
+	                callback(responseObject.errors);
+	            } else {
+	                exports.config.auth_object = responseObject;
+	                var jsonObject = JSON.stringify(exports.config.auth_object);
+	                fs.writeFile('token.json', jsonObject, 'utf-8', function() {
+	                    exports.auth.checkAuth(callback);
+	                });
+	            }
+	        }
+	    })
+	},
+	testCall: function(callback) {
+	    var testPostBody = {
+	        access_token: exports.config.auth_object.access_token,
+	        json: true
+	    };
+	    request.get({
+	        url: exports.config.api_endpoint + '/campaigns?access_token=' + exports.config.auth_object.access_token
+	    }, function(err, httpResponse, body) {
+	        if (err) {
+	        	exports.auth.refreshToken(callback);
+	        } else {
+	            var objectBody = JSON.parse(body);
+	            if (objectBody.errors) {
+	                if (objectBody.errors[0].message == "The access token provided has expired." || objectBody.errors[0].message == "The access token provided is invalid.") {
+	                    exports.auth.refreshToken(callback);
+	                }
+	            } else {
+	                callback(exports.config);
+	            }
+	        }
+	    })
+	}
+};
 
 
 exports.assets = {
@@ -376,7 +497,6 @@ exports.contacts = {
 		})
 	},
 	listContacts: function(config,queryParameters,callback){
-
 		var url = config.api_endpoint + "/contacts";
 		if (queryParameters) {
 			url = url + "?";
