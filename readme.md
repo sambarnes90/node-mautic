@@ -8,7 +8,7 @@
 
   - `npm install mautic-api-node`
   - Require the module with `var mautic = require('mautic-api-node')`
-  - Update the mautic.config object with relevant details as per below:
+  - Update the mautic.config object with relevant details as per below:\
 	`mautic.config.base_url = "https://example.mautic.com";`\
 	`mautic.config.redirect_uri = "https://www.mautic.com";`\
 	`mautic.config.public_key = "EXAMPLE_PUBLIC_KEY";`\
@@ -16,6 +16,7 @@
 	`mautic.config.state = "RANDOM_STATE";`\
 	`mautic.config.api_endpoint = "https://example.mautic.com/api";`
   - Use `mautic.auth.checkAuth(callback)` to check auth and process the data with callback.
+  - You *must* run this from the command line first, perhaps using example.js - as this will create the token file needed to authenticate with the Mautic API.
   - Callback will either receive a single parameter from these options:
     - An `asset` object containing the JSON response from the API.
     - An `error` string containing a relevant error message.
@@ -24,6 +25,10 @@
 ## Examples
 
   - Please reference `example.js` for an example.
+
+## Support
+
+  - Please raise an issue on the Github repo - https://github.com/sambarnes90/node-mautic  
 
 ## Reference
 
