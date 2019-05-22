@@ -1,3 +1,8 @@
+# !!! Project No Longer Maintined !!!
+# Please use [@vdavid's improved version](https://github.com/vdavid/node-mautic)
+
+--------------------------------
+
 # Node.js Wrapper for Mautic API
 
 ![Mautic Logo](https://avatars2.githubusercontent.com/u/5257677?s=200&v=4 "Mautic Logo")
